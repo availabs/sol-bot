@@ -44,7 +44,8 @@ function MTA_Subway_SIRI_Server_watcher (sol_bot, log) {
                     this_timestamp = body.Siri.ServiceDelivery.ResponseTimestamp;
 
                     if (this_timestamp <= last_timestamp) {
-                        if ((retry++ % 30) === 0) {
+                        if ((retry++ % 4) === 0) {
+                            all_good = false;
                             log.warn({ msg: 'WARN: MTA_Subway_SIRI_Server not updating the realtime data.', retry: retry });
                         }
 
@@ -58,13 +59,14 @@ function MTA_Subway_SIRI_Server_watcher (sol_bot, log) {
                         last_timestamp = this_timestamp;
                     }
                 } catch (e) {
+                    all_good = false;
                     if (retry++ === 10) {
                         channel.send('MTA_Subway_SIRI_Server is sending mangled data.');
                     } 
                 }
             }
         });
-    }, 3000);
+    }, 30000);
 }
 
 module.exports = [
