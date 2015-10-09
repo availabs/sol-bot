@@ -13,6 +13,7 @@ sol.on('open', function (err) {
         return;
     }
 
+    console.log('Sol is connected to Slack.');
     for (var i = 0; i < watchers.length; ++i) {
         watchers[i](sol, logging);
     }

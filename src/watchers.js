@@ -56,8 +56,9 @@ function MTA_Subway_SIRI_Server_data_watcher (sol_bot, log) {
     //var channel = sol_bot.getChannelByName('mta-gtfsr2siri') ,
     var channel = sol_bot.getChannelByName('sol-bot') ,  // jshint ignore:line 
 
-        all_good = true ,
-        retry    = 0    ;
+        all_good      = true ,
+        connect_retry = 0    ,
+        parsing_retry = 0    ;
 	
 
     setInterval(function () {
@@ -74,11 +75,13 @@ function MTA_Subway_SIRI_Server_data_watcher (sol_bot, log) {
                 try {
                     JSON.parse(body);
                     all_good = true;
-                    retry = 0;
+                    parsing_retry = 0;
                 } catch (e) {
-                    log.error('ERROR while parsing the response.' { body : body });
+                    if ((connect_retry++ % 3) === 0) {
+                        log.error('ERROR while parsing the response.', { body : body, retry: parsing_retry });
+                    }
                     all_good = false;
-                    if (retry++ === 10) {
+                    if (parsing_retry++ === 10) {
                         channel.send('MTA_Subway_SIRI_Server is sending bad data.');
                     } 
                 }
@@ -89,12 +92,12 @@ function MTA_Subway_SIRI_Server_data_watcher (sol_bot, log) {
             if (all_good) {
                 log.error('ERROR: MTA_Subway_SIRI_Server is down.', { err: err });
             } else {
-                if ((++retry % 3) === 0) {
-                    log.error('ERROR: MTA_Subway_SIRI_Server is still down.', { err: err, retry: retry });
+                if ((++connect_retry % 3) === 0) {
+                    log.error('ERROR: MTA_Subway_SIRI_Server is still down.', { err: err, retry: connect_retry });
                 }
             }
 
-            if (retry === 10) {
+            if (connect_retry === 10) {
                 channel.send('The MTA_Subway_SIRI_Server is down.');
             }
 
