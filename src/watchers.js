@@ -26,11 +26,9 @@ function MTA_Subway_SIRI_Server_time_watcher (sol_bot, log) {
 
                         last_gtfsrt_timestamp = this_gtfsrt_timestamp;
 
-                        if ((retry++ % 4) === 0) {
+                        if ((++retry % 5) === 0) {
                             all_good = false;
-                            log.warn({ 
-                                msg: 'WARN: MTA_Subway_SIRI_Server may not be updating the realtime data.', 
-                                retry: retry });
+                            log.error('WARN: MTA_Subway_SIRI_Server may not be updating the realtime data.', { retry: retry });
                         }
 
                         if (retry === 10) {
@@ -60,7 +58,7 @@ function MTA_Subway_SIRI_Server_data_watcher (sol_bot, log) {
 
         all_good = true ,
         retry    = 0    ;
-
+	
 
     setInterval(function () {
 
@@ -78,10 +76,10 @@ function MTA_Subway_SIRI_Server_data_watcher (sol_bot, log) {
                     all_good = true;
                     retry = 0;
                 } catch (e) {
-                    log.error(e);
+                    log.error('ERROR while parsing the response.' { body : body });
                     all_good = false;
                     if (retry++ === 10) {
-                        channel.send('MTA_Subway_SIRI_Server is sending mangled data.');
+                        channel.send('MTA_Subway_SIRI_Server is sending bad data.');
                     } 
                 }
             });
@@ -101,8 +99,7 @@ function MTA_Subway_SIRI_Server_data_watcher (sol_bot, log) {
             }
 
             all_good = false;
-        });
-
+      });
     }, 30000);
 }
 
