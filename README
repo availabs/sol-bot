@@ -1,5 +1,5 @@
 #Instructions
 
-1. ```cp /src/token.js.template /src/token.js```
+1. cp /src/token.js.template /src/token.js
 2. add your key to src/token.js
-3. ```node app.js```
+3. node app.js
