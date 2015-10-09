@@ -1,5 +1,6 @@
 #Instructions
 
-1. cp /src/token.js.template /src/token.js
-2. add your key to src/token.js
-3. node app.js
+1. npm install
+2. cp /src/token.js.template /src/token.js
+3. add your key to src/token.js
+4. node app.js
