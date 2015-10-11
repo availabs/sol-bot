@@ -15,7 +15,7 @@ function MTA_Subway_SIRI_Server_time_watcher (sol_bot, log) {
 
     setInterval(function () {
 
-        http.get('http://mars.availabs.org:16180/admin/get/GTFS-Realtime/currentTimestamp', function (res) {
+        http.get('http://mars.availabs.org:16180/admin/get/GTFS-Realtime/feed-reader/lastReadTimestamp', function (res) {
             res.on('data', function (d) {
                 var this_gtfsrt_timestamp;
 
