@@ -63,7 +63,7 @@ function MTA_Subway_SIRI_Server_data_watcher (sol_bot, log) {
 
     setInterval(function () {
 
-        http.get('http://mars.availabs.org:16180/vehicle-monitoring', function (res) {
+        http.get('http://mars.availabs.org:16180/vehicle-monitoring.json?VehicleMonitoringDetailLevel=calls', function (res) {
 
             var body = '';
 
