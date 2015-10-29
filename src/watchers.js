@@ -32,16 +32,31 @@ function MTA_Subway_SIRI_Server_data_watcher (_sol_bot, _log) {
     watcherFactory(vehicleMonitoringWithCallsURL_xml, 'xml');
 
 
-    for ( i = 0; i < stop_ids.length; ++i ) {
-        watcherFactory(stopMonitoringURL_base + '.json?MonitoringRef=MTA%20' + stop_ids[i], 'json');   
-        watcherFactory(stopMonitoringURL_base + 
-                       '.json?StopMonitoringDetailLevel=calls&MonitoringRef=MTA%20' + 
-                       stop_ids[i], 'json');   
+    function watchStopMonitoringURL(i) {
+        setTimeout(function() {
+            watcherFactory(stopMonitoringURL_base + '.json?MonitoringRef=MTA%20' + stop_ids[i], 'json');   
 
-        watcherFactory(stopMonitoringURL_base + '.xml?MonitoringRef=MTA%20' + stop_ids[i], 'xml');   
-        watcherFactory(stopMonitoringURL_base + 
-                       '.xml?StopMonitoringDetailLevel=calls&MonitoringRef=MTA%20' + 
-                       stop_ids[i], 'xml');   
+            setTimeout(function () {
+                watcherFactory(stopMonitoringURL_base + 
+                               '.json?StopMonitoringDetailLevel=calls&MonitoringRef=MTA%20' + 
+                               stop_ids[i], 'json');   
+            }, 5);
+
+            setTimeout(function () {
+                watcherFactory(stopMonitoringURL_base + '.xml?MonitoringRef=MTA%20' + stop_ids[i], 'xml');   
+            }, 10);
+
+            setTimeout(function () {
+                watcherFactory(stopMonitoringURL_base + 
+                               '.xml?StopMonitoringDetailLevel=calls&MonitoringRef=MTA%20' + 
+                               stop_ids[i], 'xml');   
+            }, 15);
+
+        }, 25 * i);
+    }
+
+    for ( i = 0; i < stop_ids.length; ++i ) {
+        watchStopMonitoringURL(i);
     }
 }
 
