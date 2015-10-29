@@ -9,7 +9,7 @@ var request = require('request'),
 
 var stop_ids = require('./stopIDs');
 
-
+var sentMessage = false;
 
 function MTA_Subway_SIRI_Server_data_watcher (_sol_bot, _log) {
     sol_bot = _sol_bot;
@@ -21,7 +21,7 @@ function MTA_Subway_SIRI_Server_data_watcher (_sol_bot, _log) {
         vehicleMonitoringURL_xml = 'http://localhost:16180/api/siri/vehicle-monitoring.xml',
         vehicleMonitoringWithCallsURL_xml = vehicleMonitoringURL_xml + '?VehicleMonitoringDetailLevel=calls',
 
-        stopMonitoringURL_base =  'http://localhost:16182/api/siri/stop-monitoring',
+        stopMonitoringURL_base =  'http://localhost:16180/api/siri/stop-monitoring',
 
         i;
 
@@ -60,20 +60,27 @@ function watcherFactory (url, format) {
         if ((connect_retry++ % 3) === 0) {
             log.error('ERROR while parsing the response.', { body : body, retry: parsing_retry });
         }
+
         all_good = false;
-        if (parsing_retry++ === 10) {
+
+        if (!sentMessage && (parsing_retry++ === 10)) {
+            sentMessage = true;
             channel.send('MTA_Subway_SIRI_Server is sending bad data.');
+            //console.log('MTA_Subway_SIRI_Server is sending bad data.');
         } 
     }
 
     setInterval(function () {
 
-        request(url, function (error, reponse, body) {
+        request(url, function (error, response, body) {
 
-            if (error || ( reponse.statusCode !== 200 )) {
+            if (error || (!response) || (response.statusCode !== 200)) {
 
                 console.error('error:', error);
-                console.error('reponse.statusCode:', response.statusCode);
+
+                if (response) {
+                    console.error('response.statusCode:', response.statusCode);
+                }
 
                 if (all_good) {
                     log.error('ERROR: MTA_Subway_SIRI_Server is down.', { error: error });
@@ -84,8 +91,10 @@ function watcherFactory (url, format) {
                     }
                 }
 
-                if (connect_retry === 10) {
+                if (!sentMessage && (connect_retry === 10)) {
+                    sentMessage = true;
                     channel.send('The MTA_Subway_SIRI_Server is down.');
+                    //console.log('The MTA_Subway_SIRI_Server is down.');
                 }
 
                 all_good = false;
@@ -95,7 +104,7 @@ function watcherFactory (url, format) {
 
             try {
                 if (format === 'json') {
-                    console.log(JSON.parse(body));
+                    JSON.parse(body);
                 } else {
                     parseXML(body, function (e) {
                         if (e) { 
