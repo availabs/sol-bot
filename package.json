@@ -11,6 +11,7 @@
   "dependencies": {
     "bunyan": "^1.5.1",
     "request": "^2.64.0",
-    "slack-client": "^1.4.1"
+    "slack-client": "^1.4.1",
+    "xml2js": "^0.4.13"
   }
 }
