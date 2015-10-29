@@ -31,7 +31,6 @@ function MTA_Subway_SIRI_Server_data_watcher (_sol_bot, _log) {
     watcherFactory(vehicleMonitoringURL_xml, 'xml');
     watcherFactory(vehicleMonitoringWithCallsURL_xml, 'xml');
 
-
     function watchStopMonitoringURL(i) {
         setTimeout(function() {
             watcherFactory(stopMonitoringURL_base + '.json?MonitoringRef=MTA%20' + stop_ids[i], 'json');   
