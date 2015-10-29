@@ -66,7 +66,6 @@ function watcherFactory (url, format) {
         } 
     }
 
-    console.log(url);
     setInterval(function () {
 
         request(url, function (error, reponse, body) {
