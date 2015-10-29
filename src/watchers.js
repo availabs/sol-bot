@@ -73,7 +73,7 @@ function watcherFactory (url, format) {
             if (error || ( reponse.statusCode !== 200 )) {
 
                 console.error('error:', error);
-                console.error('reponse.statusCode:', reponse.statusCode);
+                console.error('reponse.statusCode:', response.statusCode);
 
                 if (all_good) {
                     log.error('ERROR: MTA_Subway_SIRI_Server is down.', { error: error });
