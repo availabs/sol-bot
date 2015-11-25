@@ -22,13 +22,13 @@ function MTA_Subway_SIRI_Server_data_watcher (_sol_bot, _log) {
         vehicleMonitoringWithCallsURL_xml = vehicleMonitoringURL_xml + '?VehicleMonitoringDetailLevel=calls';
 
     watcherFactory(function () { return vehicleMonitoringURL_json; }, 'json', 30000);
-    watcherFactory(function () { return vehicleMonitoringWithCallsURL_json; }, 'json', 30000);
+    watcherFactory(function () { return vehicleMonitoringWithCallsURL_json; }, 'json', 1000);
 
     watcherFactory(function () { return vehicleMonitoringURL_xml; }, 'xml', 30000);
-    watcherFactory(function () { return vehicleMonitoringWithCallsURL_xml; }, 'xml', 30000);
+    watcherFactory(function () { return vehicleMonitoringWithCallsURL_xml; }, 'xml', 1000);
 
-    watcherFactory(getRandomStopMonitoringURL.bind(null, 'json'), 'json', 100);   
-    watcherFactory(getRandomStopMonitoringURL.bind(null, 'xml'), 'xml', 100);   
+    watcherFactory(getRandomStopMonitoringURL.bind(null, 'json'), 'json', 50);   
+    watcherFactory(getRandomStopMonitoringURL.bind(null, 'xml'), 'xml', 50);   
 }
 
 
@@ -46,7 +46,8 @@ function watcherFactory (urlGetter, format, timeout) {
 
         all_good      = true ,
         connect_retry = 0    ,
-        parsing_retry = 0    ;
+        parsing_retry = 0    ,
+	counter       = 0    ;
 	
 
     function parsingErrorHandler (e, body) {
@@ -69,8 +70,6 @@ function watcherFactory (urlGetter, format, timeout) {
 
         var url   = urlGetter();
 
-        console.log(url);
-
         request({
                     url: url,
                     //timeout: 10000,
@@ -80,6 +79,10 @@ function watcherFactory (urlGetter, format, timeout) {
 
 
                     if (error || (!response) || (response.statusCode !== 200)) {
+
+			console.log(counter++, '======================================================');
+			console.log('url: ', url);
+			console.log("Error:", error, "; statusCode:", response && response.statusCode);
 
                         if (response) {
                             console.error('response.statusCode:', response.statusCode);
@@ -104,6 +107,8 @@ function watcherFactory (urlGetter, format, timeout) {
 
                         return;
                     }
+
+                    connect_retry = 0;
 
                     try {
                         if (format === 'json') {
