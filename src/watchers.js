@@ -100,6 +100,7 @@ function watcherFactory (urlGetter, format, intervalTimeout) {
                             console.log("\n===== toobusy error rate exceeded threshold =====");
                             console.log("\terror rate : " + toobusyErrors.length + " in last 100 sec)");
                             console.log("\tthreshold  : " + TOOBUSY_THRESHOLD + "\n");
+                            log.error("ERROR: toobusy 503 threshold rate exceeded.");
                         }
 
                     } else {
