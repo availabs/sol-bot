@@ -11,11 +11,9 @@ var stop_ids = require('./stopIDs');
 
 var sentMessage = false;
 
-var stopMonitoringCallsPerSecond = 20;
-
 var toobusyErrorMessage = "Server is temporarily too busy. Please try again.",
     toobusyErrors = [],     // Holds posix timestamps of the toobusy errors.
-    TOOBUSY_THRESHOLD = 50; // Acceptable number of toobusy 503 errors per 100 seconds.
+    TOOBUSY_THRESHOLD = 50; // Acceptable number of toobusy 503 errors per 120 seconds.
 
 
 function MTA_Subway_SIRI_Server_data_watcher (_sol_bot, _log) {
@@ -34,8 +32,8 @@ function MTA_Subway_SIRI_Server_data_watcher (_sol_bot, _log) {
     watcherFactory(function () { return vehicleMonitoringURL_xml; }, 'xml', 500);
     watcherFactory(function () { return vehicleMonitoringWithCallsURL_xml; }, 'xml', 500);
 
-    watcherFactory(getRandomStopMonitoringURL.bind(null, 'json'), 'json', 1000 / stopMonitoringCallsPerSecond);   
-    watcherFactory(getRandomStopMonitoringURL.bind(null, 'xml'), 'xml', 1000 / stopMonitoringCallsPerSecond);   
+    watcherFactory(getRandomStopMonitoringURL.bind(null, 'json'), 'json', 10);   
+    watcherFactory(getRandomStopMonitoringURL.bind(null, 'xml'), 'xml', 10);   
 }
 
 
@@ -53,7 +51,7 @@ function watcherFactory (urlGetter, format, intervalTimeout) {
         all_good      = true ,
         connect_retry = 0 ,
         parsing_retry = 0 ;
-	
+    
 
     function parsingErrorHandler (e, body) {
         console.error('e:', e);
@@ -85,7 +83,7 @@ function watcherFactory (urlGetter, format, intervalTimeout) {
                     resBodyJSON;
 
                 toobusyErrors = toobusyErrors.filter(function (ts) {
-                    return (timestamp - ts) < 100;   // Filter out the timestamps older than 100 seconds.
+                    return (timestamp - ts) < 120;   // Filter out the timestamps older than 100 seconds.
                 });
 
                 if (error || (!response) || (response.statusCode !== 200)) {
@@ -95,12 +93,15 @@ function watcherFactory (urlGetter, format, intervalTimeout) {
                     if ( response && (response.statusCode === 503) && (resBodyJSON.error === toobusyErrorMessage)) {
 
                         toobusyErrors.push(timestamp);
+                        console.log(toobusyErrors.length);
 
                         if (toobusyErrors.length > TOOBUSY_THRESHOLD) {
                             console.log("\n===== toobusy error rate exceeded threshold =====");
-                            console.log("\terror rate : " + toobusyErrors.length + " in last 100 sec)");
+                            console.log("\terror rate : " + toobusyErrors.length + " in last 120 sec)");
                             console.log("\tthreshold  : " + TOOBUSY_THRESHOLD + "\n");
                             log.error("ERROR: toobusy 503 threshold rate exceeded.");
+
+			    toobusyErrors = toobusyErrors.slice(toobusyErrors.length / 2);
                         }
 
                     } else {
@@ -116,7 +117,7 @@ function watcherFactory (urlGetter, format, intervalTimeout) {
                     } else {
                         if ((++connect_retry % 4) === 0) {
                             log.error('ERROR: MTA_Subway_SIRI_Server is still down.', 
-                                        { error: error, retry: connect_retry });
+                                { error: error, retry: connect_retry, statusCode: response && response.statusCode });
                         }
                     }
 
@@ -136,15 +137,18 @@ function watcherFactory (urlGetter, format, intervalTimeout) {
                 try {
                     if (format === 'json') {
                         JSON.parse(body);
+                        all_good = true;
+                        parsing_retry = 0;
                     } else {
                         parseXML(body, function (e) {
                             if (e) { 
                                 parsingErrorHandler(e, body); 
+                            } else {
+                                all_good = true;
+                                parsing_retry = 0;
                             }
                         });
                     }
-                    all_good = true;
-                    parsing_retry = 0;
                 } catch (e) {
                     parsingErrorHandler(e, body);
                 } finally {
