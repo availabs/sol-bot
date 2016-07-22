@@ -1,5 +1,7 @@
 'use strict';
 
+var hostURL = 'http://localhost:16181/api/siri/'
+
 // Threse are passed in via MTA_Subway_SIRI_Server_data_watcher
 var sol_bot,
     log;
@@ -20,10 +22,10 @@ function MTA_Subway_SIRI_Server_data_watcher (_sol_bot, _log) {
     sol_bot = _sol_bot;
     log = _log;
 
-    var vehicleMonitoringURL_json = 'http://localhost:16180/api/siri/vehicle-monitoring.json',
+    var vehicleMonitoringURL_json = hostURL + 'vehicle-monitoring.json',
         vehicleMonitoringWithCallsURL_json = vehicleMonitoringURL_json + '?VehicleMonitoringDetailLevel=calls',
 
-        vehicleMonitoringURL_xml = 'http://localhost:16180/api/siri/vehicle-monitoring.xml',
+        vehicleMonitoringURL_xml = hostURL + '/vehicle-monitoring.xml',
         vehicleMonitoringWithCallsURL_xml = vehicleMonitoringURL_xml + '?VehicleMonitoringDetailLevel=calls';
 
     watcherFactory(function () { return vehicleMonitoringURL_json; }, 'json', 500);
@@ -38,7 +40,7 @@ function MTA_Subway_SIRI_Server_data_watcher (_sol_bot, _log) {
 
 
 function getRandomStopMonitoringURL (dataFormat) {
-    return 'http://localhost:16180/api/siri/stop-monitoring.' + dataFormat + '?' + 
+    return hostURL + '/stop-monitoring.' + dataFormat + '?' + 
             'MonitoringRef=MTA_' + stop_ids[Math.floor(stop_ids.length * Math.random())] +
             ((Math.random() > 0.5) ?  '&StopMonitoringDetailLevel=calls' : '');
 }
@@ -46,7 +48,7 @@ function getRandomStopMonitoringURL (dataFormat) {
 
 
 function watcherFactory (urlGetter, format, intervalTimeout) {
-    var channel = sol_bot.getChannelByName('sol-bot') ,  // jshint ignore:line 
+    var channel = sol_bot ? sol_bot.getChannelByName('sol-bot') : null,  // jshint ignore:line 
 
         all_good      = true ,
         connect_retry = 0 ,
@@ -64,7 +66,9 @@ function watcherFactory (urlGetter, format, intervalTimeout) {
 
         if (!sentMessage && (parsing_retry++ === 10)) {
             sentMessage = true;
-            //channel.send('MTA_Subway_SIRI_Server is sending bad data.');
+            if (channel) {
+              channel.send('MTA_Subway_SIRI_Server is sending bad data.');
+            }
             console.log('MTA_Subway_SIRI_Server is sending bad data.');
         } 
     }
@@ -88,9 +92,11 @@ function watcherFactory (urlGetter, format, intervalTimeout) {
 
                 if (error || (!response) || (response.statusCode !== 200)) {
 
-                    resBodyJSON = response && response.body && JSON.parse(response.body);
+                    resBodyJSON = response && response.body && ((format==='json') ? JSON.parse(response.body) : null);
 
-                    if ( response && (response.statusCode === 503) && (resBodyJSON.error === toobusyErrorMessage)) {
+                    if (resBodyJSON === null) {
+                      // xml parser is async, will require major changes in here to handle 
+                    } else if (response && (response.statusCode === 503)&&(resBodyJSON.error===toobusyErrorMessage)) {
 
                         toobusyErrors.push(timestamp);
                         console.log(toobusyErrors.length);
@@ -101,7 +107,7 @@ function watcherFactory (urlGetter, format, intervalTimeout) {
                             console.log("\tthreshold  : " + TOOBUSY_THRESHOLD + "\n");
                             log.error("ERROR: toobusy 503 threshold rate exceeded.");
 
-			    toobusyErrors = toobusyErrors.slice(toobusyErrors.length / 2);
+                            toobusyErrors = toobusyErrors.slice(toobusyErrors.length / 2);
                         }
 
                     } else {
@@ -123,7 +129,9 @@ function watcherFactory (urlGetter, format, intervalTimeout) {
 
                     if (!sentMessage && (connect_retry === 10)) {
                         sentMessage = true;
-                        //channel.send('The MTA_Subway_SIRI_Server is down.');
+                        if (channel) {
+                          channel.send('The MTA_Subway_SIRI_Server is down.');
+                        }
                         console.log('The MTA_Subway_SIRI_Server is down.');
                     }
 
@@ -139,17 +147,21 @@ function watcherFactory (urlGetter, format, intervalTimeout) {
                         JSON.parse(body);
                         all_good = true;
                         parsing_retry = 0;
+                        console.log('json')
                     } else {
                         parseXML(body, function (e) {
                             if (e) { 
+                                console.log(url)
                                 parsingErrorHandler(e, body); 
                             } else {
                                 all_good = true;
                                 parsing_retry = 0;
+                                console.log('xml')
                             }
                         });
                     }
                 } catch (e) {
+                    console.log(url)
                     parsingErrorHandler(e, body);
                 } finally {
                     body = null;

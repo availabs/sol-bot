@@ -1,8 +1,8 @@
 var Slack = require('slack-client'),
 
-    token         = require('./token.js'),
+    token         = require('./slack-token.js'),
     autoReconnect = true,
     autoMark      = true;
 
-module.exports = new Slack(token, autoReconnect, autoMark);
+module.exports = (token) ? new Slack(token, autoReconnect, autoMark) : null;
 
