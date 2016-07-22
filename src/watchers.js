@@ -18,6 +18,7 @@ var toobusyErrorMessage = "Server is temporarily too busy. Please try again.",
     TOOBUSY_THRESHOLD = 50; // Acceptable number of toobusy 503 errors per 120 seconds.
 
 
+
 function MTA_Subway_SIRI_Server_data_watcher (_sol_bot, _log) {
     sol_bot = _sol_bot;
     log = _log;
@@ -92,11 +93,19 @@ function watcherFactory (urlGetter, format, intervalTimeout) {
 
                 if (error || (!response) || (response.statusCode !== 200)) {
 
-                    resBodyJSON = response && response.body && ((format==='json') ? JSON.parse(response.body) : null);
+                  if (!(response && response.body)) {
+                    return console.error("No body in error response.")
+                  }
 
-                    if (resBodyJSON === null) {
-                      // xml parser is async, will require major changes in here to handle 
-                    } else if (response && (response.statusCode === 503)&&(resBodyJSON.error===toobusyErrorMessage)) {
+                  var errResponseBodyParser = 
+                        (format === 'json') ? jsonErrResponseBodyParser : xmlErrResponseBodyParser
+
+                  return errResponseBodyParser(response.body, function (err, resBodyJSON) {
+                    if (err) {
+                      return console.error(err.stack || err)  
+                    }
+
+                    if (response && (response.statusCode === 503)&&(resBodyJSON.error===toobusyErrorMessage)) {
 
                         toobusyErrors.push(timestamp);
                         console.log(toobusyErrors.length);
@@ -136,9 +145,10 @@ function watcherFactory (urlGetter, format, intervalTimeout) {
                     }
 
                     all_good = false;
+                  
+                  })
+                } // End error handling.
 
-                    return;
-                }
 
                 connect_retry = 0;
 
@@ -170,6 +180,22 @@ function watcherFactory (urlGetter, format, intervalTimeout) {
         );
                 
     }, intervalTimeout);
+}
+
+function jsonErrResponseBodyParser (resBody, cb) {
+  try {
+    return cb(null, JSON.parse(resBody))
+  } catch (err) {
+    cb(err)
+  }
+}
+
+function xmlErrResponseBodyParser (resBody, cb) {
+  try {
+    return parseXML(resBody, cb)
+  } catch (err) {
+    return cb(err)
+  }
 }
 
 
