@@ -1,9 +1,9 @@
 'use strict';
 
-var hostURL = 'http://siri.mta.availabs.org/api/siri'
-//var hostURL = 'http://siri.mta.lline.availabs.org/api/siri'
-//var hostURL = 'http://siri.statenisland.availabs.org/api/siri'
-//var hostURL = 'http://siri.lirr.availabs.org/api/siri'
+var hostURL = 'http://siri.mta.availabs.org/api/siri/'
+//var hostURL = 'http://siri.mta.lline.availabs.org/api/siri/'
+//var hostURL = 'http://siri.statenisland.availabs.org/api/siri/'
+//var hostURL = 'http://siri.lirr.availabs.org/api/siri/'
 
 var stopIDs = require('./mtaSubwayStopIDs');
 //var stopIDs = require('./mtaLLinStopIDs');
@@ -99,6 +99,7 @@ function watcherFactory (urlGetter, format, intervalTimeout) {
                 });
 
                 if (error || (!response) || (response.statusCode !== 200)) {
+                  console.log(url)
 
                   if (!(response && response.body)) {
                     return console.error("No body in error response.")
