@@ -1,6 +1,15 @@
 'use strict';
 
-var hostURL = 'http://localhost:16181/api/siri/'
+var hostURL = 'http://siri.mta.availabs.org/api/siri'
+//var hostURL = 'http://siri.mta.lline.availabs.org/api/siri'
+//var hostURL = 'http://siri.statenisland.availabs.org/api/siri'
+//var hostURL = 'http://siri.lirr.availabs.org/api/siri'
+
+var stopIDs = require('./mtaSubwayStopIDs');
+//var stopIDs = require('./mtaLLinStopIDs');
+//var stopIDs = require('./statenIslandStopIDs');
+//var stopIDs = require('./lirrStopIDs');
+
 
 // Threse are passed in via MTA_Subway_SIRI_Server_data_watcher
 var sol_bot,
@@ -8,8 +17,6 @@ var sol_bot,
 
 var request = require('request'),
     parseXML = require('xml2js').parseString;
-
-var stop_ids = require('./stopIDs');
 
 var sentMessage = false;
 
@@ -42,7 +49,7 @@ function MTA_Subway_SIRI_Server_data_watcher (_sol_bot, _log) {
 
 function getRandomStopMonitoringURL (dataFormat) {
     return hostURL + '/stop-monitoring.' + dataFormat + '?' + 
-            'MonitoringRef=MTA_' + stop_ids[Math.floor(stop_ids.length * Math.random())] +
+            'MonitoringRef=MTA_' + stopIDs[Math.floor(stopIDs.length * Math.random())] +
             ((Math.random() > 0.5) ?  '&StopMonitoringDetailLevel=calls' : '');
 }
 
