@@ -1,15 +1,15 @@
 'use strict';
 
-var hostURL = 'http://localhost:16183/api/siri/'
-//var hostURL = 'http://siri.mta.availabs.org/api/siri/'
+//var hostURL = 'http://localhost:16183/api/siri/'
+var hostURL = 'http://siri.mta.availabs.org/api/siri/'
 //var hostURL = 'http://siri.mta.lline.availabs.org/api/siri/'
 //var hostURL = 'http://siri.mta.statenisland.availabs.org/api/siri/'
 //var hostURL = 'http://siri.mta.lirr.availabs.org/api/siri/'
 
-//var stopIDs = require('./mtaSubwayStopIDs');
+var stopIDs = require('./mtaSubwayStopIDs');
 //var stopIDs = require('./mtaLLineStopIDs');
 //var stopIDs = require('./statenIslandStopIDs');
-var stopIDs = require('./lirrStopIDs');
+//var stopIDs = require('./lirrStopIDs');
 
 
 // Threse are passed in via MTA_Subway_SIRI_Server_data_watcher
@@ -24,6 +24,8 @@ var sentMessage = false;
 var toobusyErrorMessage = "Service Unavailable: Back-end server is at capacity.",
     toobusyErrors = [],     // Holds posix timestamps of the toobusy errors.
     TOOBUSY_THRESHOLD = 50; // Acceptable number of toobusy 503 errors per 120 seconds.
+
+var counter = 0
 
 function MTA_Subway_SIRI_Server_data_watcher (_sol_bot, _log) {
     sol_bot = _sol_bot;
@@ -48,7 +50,7 @@ function MTA_Subway_SIRI_Server_data_watcher (_sol_bot, _log) {
 
 function getRandomStopMonitoringURL (dataFormat) {
     return hostURL + '/stop-monitoring.' + dataFormat + '?' + 
-            'MonitoringRef=MTA_' + stopIDs[Math.floor(stopIDs.length * Math.random())] +
+            'MonitoringRef=' + stopIDs[Math.floor(stopIDs.length * Math.random())] +
             ((Math.random() > 0.5) ?  '&StopMonitoringDetailLevel=calls' : '');
 }
 
@@ -101,8 +103,12 @@ function watcherFactory (urlGetter, format, intervalTimeout) {
                 if (error || (!response) || (response.statusCode !== 200)) {
                   console.log(url)
 
-                  if (!(response && response.body)) {
-                    return console.error("No body in error response.")
+                  if (error) {
+                      return console.error(error);
+                  } else if (!response) {
+                      return console.error("No response object.");
+                  } else if (!response.body) {
+                      return console.error("No body in error response.");
                   }
 
                   var errResponseBodyParser = 
@@ -113,9 +119,11 @@ function watcherFactory (urlGetter, format, intervalTimeout) {
                       return console.error(err.stack || err)  
                     }
 
-                    if (response && (response.statusCode === 503)&&
-                       ((x = resBodyJSON.Siri) && (x = x.ServiceDelivery) && (x = x.StopMonitoringDelivery) &&
-                         (Array.isArray(x) && x.leength) && (x[0].OtherError === toobusyErrorMessage))) {
+                    var x;
+                    if (response && (response.statusCode === 503) &&
+                        ((x = resBodyJSON.Siri) && (x = x.ServiceDelivery) && 
+                         ((x = x.StopMonitoringDelivery) || (x = x.VehicleMonitoringDelivery)) &&
+                         ((x[0] && (x[0].OtherError === toobusyErrorMessage)) ))) {
 
                         toobusyErrors.push(timestamp);
                         console.log(toobusyErrors.length);
@@ -167,7 +175,7 @@ function watcherFactory (urlGetter, format, intervalTimeout) {
                         JSON.parse(body);
                         all_good = true;
                         parsing_retry = 0;
-                        console.log('json')
+                        console.log(counter++, 'json')
                     } else {
                         parseXML(body, function (e) {
                             if (e) { 
@@ -176,7 +184,7 @@ function watcherFactory (urlGetter, format, intervalTimeout) {
                             } else {
                                 all_good = true;
                                 parsing_retry = 0;
-                                console.log('xml')
+                                console.log(counter++, 'xml')
                             }
                         });
                     }
