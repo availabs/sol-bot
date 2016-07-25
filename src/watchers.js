@@ -1,14 +1,15 @@
 'use strict';
 
-var hostURL = 'http://siri.mta.availabs.org/api/siri/'
+var hostURL = 'http://localhost:16183/api/siri/'
+//var hostURL = 'http://siri.mta.availabs.org/api/siri/'
 //var hostURL = 'http://siri.mta.lline.availabs.org/api/siri/'
-//var hostURL = 'http://siri.statenisland.availabs.org/api/siri/'
-//var hostURL = 'http://siri.lirr.availabs.org/api/siri/'
+//var hostURL = 'http://siri.mta.statenisland.availabs.org/api/siri/'
+//var hostURL = 'http://siri.mta.lirr.availabs.org/api/siri/'
 
-var stopIDs = require('./mtaSubwayStopIDs');
-//var stopIDs = require('./mtaLLinStopIDs');
+//var stopIDs = require('./mtaSubwayStopIDs');
+//var stopIDs = require('./mtaLLineStopIDs');
 //var stopIDs = require('./statenIslandStopIDs');
-//var stopIDs = require('./lirrStopIDs');
+var stopIDs = require('./lirrStopIDs');
 
 
 // Threse are passed in via MTA_Subway_SIRI_Server_data_watcher
@@ -20,11 +21,9 @@ var request = require('request'),
 
 var sentMessage = false;
 
-var toobusyErrorMessage = "Server is temporarily too busy. Please try again.",
+var toobusyErrorMessage = "Service Unavailable: Back-end server is at capacity.",
     toobusyErrors = [],     // Holds posix timestamps of the toobusy errors.
     TOOBUSY_THRESHOLD = 50; // Acceptable number of toobusy 503 errors per 120 seconds.
-
-
 
 function MTA_Subway_SIRI_Server_data_watcher (_sol_bot, _log) {
     sol_bot = _sol_bot;
@@ -92,7 +91,8 @@ function watcherFactory (urlGetter, format, intervalTimeout) {
             function (error, response, body) {
 
                 var timestamp = Math.floor(Date.now() / 1000),
-                    resBodyJSON;
+                    resBodyJSON,
+                    x;
 
                 toobusyErrors = toobusyErrors.filter(function (ts) {
                     return (timestamp - ts) < 120;   // Filter out the timestamps older than 100 seconds.
@@ -113,7 +113,9 @@ function watcherFactory (urlGetter, format, intervalTimeout) {
                       return console.error(err.stack || err)  
                     }
 
-                    if (response && (response.statusCode === 503)&&(resBodyJSON.error===toobusyErrorMessage)) {
+                    if (response && (response.statusCode === 503)&&
+                       ((x = resBodyJSON.Siri) && (x = x.ServiceDelivery) && (x = x.StopMonitoringDelivery) &&
+                         (Array.isArray(x) && x.leength) && (x[0].OtherError === toobusyErrorMessage))) {
 
                         toobusyErrors.push(timestamp);
                         console.log(toobusyErrors.length);
