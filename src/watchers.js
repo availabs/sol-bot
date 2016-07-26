@@ -1,16 +1,5 @@
 'use strict';
 
-//var hostURL = 'http://localhost:16183/api/siri/'
-var hostURL = 'http://siri.mta.availabs.org/api/siri/'
-//var hostURL = 'http://siri.mta.lline.availabs.org/api/siri/'
-//var hostURL = 'http://siri.mta.statenisland.availabs.org/api/siri/'
-//var hostURL = 'http://siri.mta.lirr.availabs.org/api/siri/'
-
-var stopIDs = require('./mtaSubwayStopIDs');
-//var stopIDs = require('./mtaLLineStopIDs');
-//var stopIDs = require('./statenIslandStopIDs');
-//var stopIDs = require('./lirrStopIDs');
-
 
 // Threse are passed in via MTA_Subway_SIRI_Server_data_watcher
 var sol_bot,
@@ -25,7 +14,11 @@ var toobusyErrorMessage = "Service Unavailable: Back-end server is at capacity."
     toobusyErrors = [],     // Holds posix timestamps of the toobusy errors.
     TOOBUSY_THRESHOLD = 50; // Acceptable number of toobusy 503 errors per 120 seconds.
 
-var counter = 0
+var counter = 0;
+
+var config = require('../config/watcherConfig');
+var hostURL = config.hostURL;
+var stopIDs = config.stopIDs;
 
 function MTA_Subway_SIRI_Server_data_watcher (_sol_bot, _log) {
     sol_bot = _sol_bot;
@@ -122,7 +115,7 @@ function watcherFactory (urlGetter, format, intervalTimeout) {
                     var x;
                     if (response && (response.statusCode === 503) &&
                         ((x = resBodyJSON.Siri) && (x = x.ServiceDelivery) && 
-                         ((x = x.StopMonitoringDelivery) || (x = x.VehicleMonitoringDelivery)) &&
+                         (x = (x.StopMonitoringDelivery || x.VehicleMonitoringDelivery)) &&
                          ((x[0] && (x[0].OtherError === toobusyErrorMessage)) ))) {
 
                         toobusyErrors.push(timestamp);
