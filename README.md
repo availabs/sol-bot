@@ -1,7 +1,7 @@
 This project will continuously make a high volume of requests to an MTA_Subway_SIRI_Server instance and logs problems. 
 It will optionally send notifications to Slack if it detects problems, if a Slack token is provided.
 
-####NOTE: This application creates a LARGE amount of network traffic. Pointing it remotely at a cloud-based server __WILL RESULT IN NETWORK TRAFFIC CHARGES__. It is highly recommended to run this app from the same machine as the hosted feed at which you point it. 
+####NOTE: This application creates a LARGE amount of network traffic. Pointing it remotely at a cloud-based server **WILL RESULT IN SIGNIFICANT NETWORK TRAFFIC CHARGES**. It is highly recommended to point this app only at `localhost`.
 
 # Deployment Instructions
 
