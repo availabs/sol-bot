@@ -7,5 +7,5 @@ It will optionally send notifications to Slack if it detects problems, if a Slac
 
 1. `npm install`
 2. provide your Slack token in [`sol-bot/src/slack-token.js`](https://github.com/availabs/sol-bot/blob/master/src/slack-token.js)
-3. Assign the hostURL and a set of stopIDs in [`config/watcherConfig.js`](https://github.com/availabs/sol-bot/blob/master/src/watchers.js)
+3. Assign the hostURL and a set of stopIDs in [`config/watcherConfig.js`](https://github.com/availabs/sol-bot/blob/master/config/watcherConfig.js)
 4. `node app.js`
