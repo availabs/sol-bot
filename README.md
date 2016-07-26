@@ -3,7 +3,7 @@ It will optionally send notifications to Slack if it detects problems, if a Slac
 
 # Deployment Instructions
 
-1. Assign the hostURL and a set of stopIDs in `config/watcherConfig.js`
-2. `npm install`
-3. provide your Slack token in `sol-bot/src/slack-token.js` 
+1. `npm install`
+2. provide your Slack token in `sol-bot/src/slack-token.js` 
+3. Assign the hostURL and a set of stopIDs in `config/watcherConfig.js`
 4. `node app.js`
